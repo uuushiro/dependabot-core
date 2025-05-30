@@ -103,27 +103,10 @@ module Dependabot
 
       sig { returns(T.nilable(T.any(Dependabot::Version, String))) }
       def fetch_latest_version_for_git_dependency
-        return current_commit unless git_commit_checker.pinned?
-
-        # If the dependency is pinned to a tag that looks like a version then
-        # we want to update that tag.
-        if git_commit_checker.pinned_ref_looks_like_version? && latest_version_tag
-          latest_version = latest_version_tag&.fetch(:version)
-          return current_version if shortened_semver_eq?(dependency.version, latest_version.to_s)
-
-          return latest_version
-        end
-
-        if git_commit_checker.pinned_ref_looks_like_commit_sha? && latest_version_tag
-          latest_version = latest_version_tag&.fetch(:version)
-          return latest_commit_for_pinned_ref unless git_commit_checker.local_tag_for_pinned_sha
-
-          return latest_version
-        end
-
-        # If the dependency is pinned to a tag that doesn't look like a
-        # version or a commit SHA then there's nothing we can do.
-        nil
+        LatestVersionFinder.new(
+          dependency: @dependency,
+          credentials: @credentials
+        ).fetch_latest_version
       end
 
       sig { returns(T.nilable(Dependabot::Version)) }
