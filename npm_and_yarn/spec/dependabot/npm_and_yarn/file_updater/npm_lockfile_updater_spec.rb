@@ -1074,11 +1074,12 @@ RSpec.describe Dependabot::NpmAndYarn::FileUpdater::NpmLockfileUpdater do
       install_arg = updater.send(:npm_install_args, dependency)
       expect(install_arg).to eq("@rollup/rollup-linux-x64-gnu@4.53.2")
 
-      # Test the run_npm_install_lockfile_only method includes --save-optional
+      # Test the run_npm_install_lockfile_only method includes --save-optional and --include=optional
       expect(Dependabot::NpmAndYarn::Helpers).to receive(:run_npm_command) do |command, _options|
         expect(command).to include("--save-optional")
         expect(command).to include("--package-lock-only")
         expect(command).to include("--force")
+        expect(command).to include("--include=optional")
         expect(command).to include("@rollup/rollup-linux-x64-gnu@4.53.2")
         ""
       end
@@ -1138,10 +1139,12 @@ RSpec.describe Dependabot::NpmAndYarn::FileUpdater::NpmLockfileUpdater do
         optional_install_arg = updater.send(:npm_install_args, optional_dependency_obj)
 
         # Test run_npm_install_lockfile_only without --save-optional for regular deps
+        # but still includes --include=optional for nested optional peer dependencies
         expect(Dependabot::NpmAndYarn::Helpers).to receive(:run_npm_command) do |command, _options|
           expect(command).not_to include("--save-optional")
           expect(command).to include("--package-lock-only")
           expect(command).to include("--force")
+          expect(command).to include("--include=optional")
           ""
         end
         updater.send(:run_npm_install_lockfile_only, [regular_install_arg], has_optional_dependencies: false)
@@ -1151,6 +1154,7 @@ RSpec.describe Dependabot::NpmAndYarn::FileUpdater::NpmLockfileUpdater do
           expect(command).to include("--save-optional")
           expect(command).to include("--package-lock-only")
           expect(command).to include("--force")
+          expect(command).to include("--include=optional")
           ""
         end
         updater.send(:run_npm_install_lockfile_only, [optional_install_arg], has_optional_dependencies: true)

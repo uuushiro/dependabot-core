@@ -347,6 +347,8 @@ module Dependabot
         #   run when installing git dependencies
         # - `--save-optional` when updating optional dependencies to ensure they
         #   stay in optionalDependencies section and allow version upgrades
+        # - `--include=optional` ensures optional peer dependencies from nested
+        #   packages are included in the lockfile (fixes missing chokidar etc.)
         sig { params(install_args: T::Array[String], has_optional_dependencies: T::Boolean).returns(String) }
         def run_npm_install_lockfile_only(install_args = [], has_optional_dependencies: false)
           command_args = [
@@ -354,7 +356,8 @@ module Dependabot
             *install_args,
             "--force",
             "--ignore-scripts",
-            "--package-lock-only"
+            "--package-lock-only",
+            "--include=optional"
           ]
 
           command_args << "--save-optional" if has_optional_dependencies
@@ -366,7 +369,8 @@ module Dependabot
             install_args.empty? ? "" : "<install_args>",
             "--force",
             "--ignore-scripts",
-            "--package-lock-only"
+            "--package-lock-only",
+            "--include=optional"
           ]
 
           fingerprint_args << "--save-optional" if has_optional_dependencies
